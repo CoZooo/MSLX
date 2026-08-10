@@ -71,7 +71,7 @@ jobs:
           fi
 
           echo "NETSPARKLE_ENABLED=true" >> "$GITHUB_ENV"
-          echo "NETSPARKLE_APPCAST_URL=https://github.com/MSLTeam/MSLX/releases/latest/download/appcast-${{ matrix.rid }}.xml" >> "$GITHUB_ENV"
+          echo "NETSPARKLE_APPCAST_URL=https://github.com/CoZooo/MSLX/releases/latest/download/appcast-${{ matrix.rid }}.xml" >> "$GITHUB_ENV"
           echo "NETSPARKLE_ED25519_PUBLIC_KEY=$SPARKLE_PUBLIC_KEY" >> "$GITHUB_ENV"
 
       - name: 导入 Developer ID Application 证书
@@ -261,24 +261,9 @@ jobs:
           # 将生成的包路径保存到环境变量
           echo "ASSET_PATH=./dist/$BASE_NAME.dmg" >> $GITHUB_ENV
 
-      - name: 签名并公证 DMG
-        env:
-          APPLE_API_KEY_BASE64: ${{ secrets.APPLE_API_KEY_BASE64 }}
-          APPLE_API_KEY_ID: ${{ secrets.APPLE_API_KEY_ID }}
-          APPLE_API_ISSUER_ID: ${{ secrets.APPLE_API_ISSUER_ID }}
+      - name: 签名 DMG（测试期间暂不公证）
         run: |
           set -euo pipefail
-
-          if [[ -z "$APPLE_API_KEY_BASE64" || -z "$APPLE_API_KEY_ID" || -z "$APPLE_API_ISSUER_ID" ]]; then
-            echo "::error::缺少 App Store Connect API Key Secrets"
-            exit 1
-          fi
-
-          API_KEY_PATH="$RUNNER_TEMP/AuthKey_${APPLE_API_KEY_ID}.p8"
-          NOTARY_RESULT_PATH="$RUNNER_TEMP/notary-result.json"
-          echo "APPLE_API_KEY_PATH=$API_KEY_PATH" >> "$GITHUB_ENV"
-          printf '%s' "$APPLE_API_KEY_BASE64" | base64 --decode > "$API_KEY_PATH"
-          chmod 600 "$API_KEY_PATH"
 
           security unlock-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
           codesign \
@@ -288,65 +273,6 @@ jobs:
             --sign "$SIGNING_IDENTITY" \
             "${{ env.ASSET_PATH }}"
           codesign --verify --verbose=2 "${{ env.ASSET_PATH }}"
-
-          set +e
-          xcrun notarytool submit "${{ env.ASSET_PATH }}" \
-            --key "$API_KEY_PATH" \
-            --key-id "$APPLE_API_KEY_ID" \
-            --issuer "$APPLE_API_ISSUER_ID" \
-            --output-format json > "$NOTARY_RESULT_PATH"
-          SUBMIT_EXIT=$?
-          set -e
-
-          cat "$NOTARY_RESULT_PATH"
-          SUBMISSION_ID=$(jq -r '.id // empty' "$NOTARY_RESULT_PATH" 2>/dev/null || true)
-
-          if [[ "$SUBMIT_EXIT" -ne 0 || -z "$SUBMISSION_ID" ]]; then
-            echo "::error::Apple 公证提交失败，未获取到 Submission ID"
-            exit 1
-          fi
-
-          echo "::notice title=Apple 公证已提交::Submission ID: $SUBMISSION_ID"
-
-          while true; do
-            set +e
-            xcrun notarytool info "$SUBMISSION_ID" \
-              --key "$API_KEY_PATH" \
-              --key-id "$APPLE_API_KEY_ID" \
-              --issuer "$APPLE_API_ISSUER_ID" \
-              --output-format json > "$NOTARY_RESULT_PATH"
-            INFO_EXIT=$?
-            set -e
-
-            cat "$NOTARY_RESULT_PATH"
-            SUBMISSION_STATUS=$(jq -r '.status // empty' "$NOTARY_RESULT_PATH" 2>/dev/null || true)
-
-            case "$SUBMISSION_STATUS" in
-              Accepted)
-                echo "Apple 公证已通过，Submission ID: $SUBMISSION_ID"
-                break
-                ;;
-              Invalid|Rejected)
-                xcrun notarytool log "$SUBMISSION_ID" \
-                  --key "$API_KEY_PATH" \
-                  --key-id "$APPLE_API_KEY_ID" \
-                  --issuer "$APPLE_API_ISSUER_ID" || true
-                echo "::error::Apple 公证失败，Submission ID: ${SUBMISSION_ID}，状态: $SUBMISSION_STATUS"
-                exit 1
-                ;;
-              *)
-                if [[ "$INFO_EXIT" -ne 0 ]]; then
-                  echo "Apple 公证状态查询失败，将继续重试，Submission ID: $SUBMISSION_ID"
-                else
-                  echo "Apple 公证仍在处理中，Submission ID: ${SUBMISSION_ID}，状态: ${SUBMISSION_STATUS:-unknown}"
-                fi
-                sleep 60
-                ;;
-            esac
-          done
-
-          xcrun stapler staple "${{ env.ASSET_PATH }}"
-          xcrun stapler validate "${{ env.ASSET_PATH }}"
 
       - name: 生成 NetSparkle AppCast
         env:
@@ -369,7 +295,7 @@ jobs:
             --single-file "${{ env.ASSET_PATH }}" \
             --file-version "$BUNDLE_SHORT_VERSION" \
             --os "macos-${{ matrix.arch }}" \
-            --base-url "https://github.com/MSLTeam/MSLX/releases/download/$VERSION_NAME" \
+            --base-url "https://github.com/CoZooo/MSLX/releases/download/$VERSION_NAME" \
             --appcast-output-directory ./dist \
             --output-file-name "appcast-${{ matrix.rid }}" \
             --link-tag "$NETSPARKLE_APPCAST_URL" \
@@ -388,9 +314,6 @@ jobs:
       - name: 清理签名凭据
         if: always()
         run: |
-          if [[ -n "${APPLE_API_KEY_PATH:-}" ]]; then
-            rm -f "$APPLE_API_KEY_PATH"
-          fi
           rm -f "$RUNNER_TEMP/mslx-developer-id.p12"
           if [[ -n "${KEYCHAIN_PATH:-}" ]]; then
             security delete-keychain "$KEYCHAIN_PATH" || true
@@ -413,7 +336,8 @@ jobs:
           tag_name: ${{ env.VERSION_NAME }}
           prerelease: ${{ env.VERSION_NAME == 'beta' }}
 
-      - name: 同步上传到 CNB Release
+      - name: 同步上传到 CNB Release（测试期间禁用）
+        if: ${{ false }}
         env:
           CNB_REPO_SLUG: "mslmc/mslx"
           CNB_TOKEN: ${{ secrets.CNB_MAIN_REPO_TOKEN }}

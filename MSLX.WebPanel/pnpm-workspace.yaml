@@ -3,3 +3,5 @@ allowBuilds:
   esbuild: true
   less: true
   vue-demi: true
+patchedDependencies:
+  tdesign-vue-next: patches/tdesign-vue-next.patch

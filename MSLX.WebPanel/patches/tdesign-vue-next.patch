@@ -1,0 +1,100 @@
+diff --git a/cjs/textarea/textarea.js b/cjs/textarea/textarea.js
+index 5ac32bbcce393ba680d14b100e6bf4229fd2e65e..65a92a5f3f22632f7b1bc032942edd6898f1117a 100644
+--- a/cjs/textarea/textarea.js
++++ b/cjs/textarea/textarea.js
+@@ -168,14 +168,18 @@ var _Textarea = Vue.defineComponent({
+       var _attrs$style;
+       if (props2.autosize === true) {
+         Vue.nextTick(function () {
+-          textareaStyle.value = calcTextareaHeight(refTextareaElem.value);
++          var textareaElem = refTextareaElem.value;
++          if (!textareaElem) return;
++          textareaStyle.value = calcTextareaHeight(textareaElem);
+         });
+       } else if (props2.autosize && _typeof__default["default"](props2.autosize) === "object") {
+         var _props2$autosize = props2.autosize,
+           minRows = _props2$autosize.minRows,
+           maxRows = _props2$autosize.maxRows;
+         Vue.nextTick(function () {
+-          textareaStyle.value = calcTextareaHeight(refTextareaElem.value, minRows, maxRows);
++          var textareaElem = refTextareaElem.value;
++          if (!textareaElem) return;
++          textareaStyle.value = calcTextareaHeight(textareaElem, minRows, maxRows);
+         });
+       } else if (attrs.rows) {
+         textareaStyle.value = {
+diff --git a/es/textarea/textarea.mjs b/es/textarea/textarea.mjs
+index 9caa32b04d1292aaa0f5f0b57746b1a9ee91590b..e5135ca117f5882ae056556375ac59ce4090cab2 100644
+--- a/es/textarea/textarea.mjs
++++ b/es/textarea/textarea.mjs
+@@ -120,14 +120,18 @@ var _Textarea = defineComponent({
+       var _attrs$style;
+       if (props2.autosize === true) {
+         nextTick(function () {
+-          textareaStyle.value = calcTextareaHeight(refTextareaElem.value);
++          var textareaElem = refTextareaElem.value;
++          if (!textareaElem) return;
++          textareaStyle.value = calcTextareaHeight(textareaElem);
+         });
+       } else if (props2.autosize && _typeof(props2.autosize) === "object") {
+         var _props2$autosize = props2.autosize,
+           minRows = _props2$autosize.minRows,
+           maxRows = _props2$autosize.maxRows;
+         nextTick(function () {
+-          textareaStyle.value = calcTextareaHeight(refTextareaElem.value, minRows, maxRows);
++          var textareaElem = refTextareaElem.value;
++          if (!textareaElem) return;
++          textareaStyle.value = calcTextareaHeight(textareaElem, minRows, maxRows);
+         });
+       } else if (attrs.rows) {
+         textareaStyle.value = {
+diff --git a/esm/textarea/textarea.js b/esm/textarea/textarea.js
+index 6e9f543a663755f88388101c6237e81e36d67e5a..5d63ed0a8007471eff76097efae8ff79f0ef613e 100644
+--- a/esm/textarea/textarea.js
++++ b/esm/textarea/textarea.js
+@@ -124,14 +124,18 @@ var _Textarea = defineComponent({
+       var _attrs$style;
+       if (props2.autosize === true) {
+         nextTick(function () {
+-          textareaStyle.value = calcTextareaHeight(refTextareaElem.value);
++          var textareaElem = refTextareaElem.value;
++          if (!textareaElem) return;
++          textareaStyle.value = calcTextareaHeight(textareaElem);
+         });
+       } else if (props2.autosize && _typeof(props2.autosize) === "object") {
+         var _props2$autosize = props2.autosize,
+           minRows = _props2$autosize.minRows,
+           maxRows = _props2$autosize.maxRows;
+         nextTick(function () {
+-          textareaStyle.value = calcTextareaHeight(refTextareaElem.value, minRows, maxRows);
++          var textareaElem = refTextareaElem.value;
++          if (!textareaElem) return;
++          textareaStyle.value = calcTextareaHeight(textareaElem, minRows, maxRows);
+         });
+       } else if (attrs.rows) {
+         textareaStyle.value = {
+diff --git a/lib/textarea/textarea.js b/lib/textarea/textarea.js
+index 6e9f543a663755f88388101c6237e81e36d67e5a..5d63ed0a8007471eff76097efae8ff79f0ef613e 100644
+--- a/lib/textarea/textarea.js
++++ b/lib/textarea/textarea.js
+@@ -124,14 +124,18 @@ var _Textarea = defineComponent({
+       var _attrs$style;
+       if (props2.autosize === true) {
+         nextTick(function () {
+-          textareaStyle.value = calcTextareaHeight(refTextareaElem.value);
++          var textareaElem = refTextareaElem.value;
++          if (!textareaElem) return;
++          textareaStyle.value = calcTextareaHeight(textareaElem);
+         });
+       } else if (props2.autosize && _typeof(props2.autosize) === "object") {
+         var _props2$autosize = props2.autosize,
+           minRows = _props2$autosize.minRows,
+           maxRows = _props2$autosize.maxRows;
+         nextTick(function () {
+-          textareaStyle.value = calcTextareaHeight(refTextareaElem.value, minRows, maxRows);
++          var textareaElem = refTextareaElem.value;
++          if (!textareaElem) return;
++          textareaStyle.value = calcTextareaHeight(textareaElem, minRows, maxRows);
+         });
+       } else if (attrs.rows) {
+         textareaStyle.value = {
